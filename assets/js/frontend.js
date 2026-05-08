@@ -6,10 +6,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('lunio-calculate-btn');
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const amount = document.getElementById('lunio-amount').value;
+        const amount = document.getElementById('lunio-amount').value.trim();
         const province = document.getElementById('lunio-province').value;
-        if (!amount || !province) {
-            showError('Please fill in all fields.');
+        const amt = parseFloat(amount);
+        if (!amount || isNaN(amt) || amt <= 0) {
+            showError('Please enter a valid amount greater than 0.');
+            return;
+        }
+        if (!province) {
+            showError('Please select a province.');
             return;
         }
         btn.disabled = true;
@@ -40,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             btn.disabled = false;
             btn.textContent = 'Calculate Tax';
-            showError('An error occurred.');
+            showError('Network error. Please try again.');
         });
     });
     function showResult(result) {
@@ -49,15 +54,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         let d = result.data;
-        let html = '<h3>Tax Calculation</h3>';
-        html += '<p>Province: ' + d.province_code + '</p>';
-        html += '<p>Subtotal: $' + parseFloat(d.subtotal).toFixed(2) + '</p>';
-        if (d.tax.gst > 0) html += '<p>GST: $' + parseFloat(d.tax.gst).toFixed(2) + '</p>';
-        if (d.tax.hst > 0) html += '<p>HST: $' + parseFloat(d.tax.hst).toFixed(2) + '</p>';
-        if (d.tax.pst > 0) html += '<p>PST: $' + parseFloat(d.tax.pst).toFixed(2) + '</p>';
-        if (d.tax.qst > 0) html += '<p>QST: $' + parseFloat(d.tax.qst).toFixed(2) + '</p>';
-        html += '<p>Total Tax: $' + parseFloat(d.tax.total_tax).toFixed(2) + '</p>';
-        html += '<p>Total: $' + parseFloat(d.total).toFixed(2) + '</p>';
+        let html = '<div class="lunio-result-header">Tax Calculation for ' + d.province_code + '</div>';
+        html += '<div class="lunio-result-row"><span>Subtotal:</span><span>$' + parseFloat(d.subtotal).toFixed(2) + '</span></div>';
+        if (d.tax.gst > 0) html += '<div class="lunio-result-row"><span>GST:</span><span>$' + parseFloat(d.tax.gst).toFixed(2) + '</span></div>';
+        if (d.tax.hst > 0) html += '<div class="lunio-result-row"><span>HST:</span><span>$' + parseFloat(d.tax.hst).toFixed(2) + '</span></div>';
+        if (d.tax.pst > 0) html += '<div class="lunio-result-row"><span>PST:</span><span>$' + parseFloat(d.tax.pst).toFixed(2) + '</span></div>';
+        if (d.tax.qst > 0) html += '<div class="lunio-result-row"><span>QST:</span><span>$' + parseFloat(d.tax.qst).toFixed(2) + '</span></div>';
+        html += '<div class="lunio-result-row lunio-total-tax"><span>Total Tax:</span><span>$' + parseFloat(d.tax.total_tax).toFixed(2) + '</span></div>';
+        html += '<div class="lunio-result-row lunio-grand-total"><span>Total:</span><span>$' + parseFloat(d.total).toFixed(2) + '</span></div>';
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     }

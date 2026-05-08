@@ -1,11 +1,13 @@
 .lunio-tax-calculator {
     max-width: 400px;
+    width: 100%;
     margin: 20px auto;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 
 .lunio-form-group {
@@ -16,47 +18,103 @@
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    color: #333;
 }
 
 .lunio-form-group input,
 .lunio-form-group select {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
 #lunio-calculate-btn {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background: #007cba;
     color: #fff;
     border: none;
     border-radius: 4px;
     font-size: 16px;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
-#lunio-calculate-btn:hover {
+#lunio-calculate-btn:hover:not(:disabled) {
     background: #005a87;
+}
+
+#lunio-calculate-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 }
 
 #lunio-result {
     margin-top: 20px;
-    padding: 10px;
-    background: #f0f8ff;
-    border: 1px solid #add8e6;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
     border-radius: 4px;
+}
+
+.lunio-result-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.lunio-result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.lunio-result-row:last-child {
+    border-bottom: none;
+}
+
+.lunio-result-row span:first-child {
+    font-weight: 500;
+    color: #555;
+}
+
+.lunio-result-row span:last-child {
+    font-weight: bold;
+    color: #333;
+}
+
+.lunio-total-tax {
+    border-top: 2px solid #ddd;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.lunio-grand-total {
+    background: #e9ecef;
+    padding: 10px 0;
+    margin: 10px 0 -5px 0;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.lunio-grand-total span:last-child {
+    color: #007cba;
 }
 
 #lunio-error {
     margin-top: 20px;
-    padding: 10px;
-    background: #ffe6e6;
-    border: 1px solid #ffcccc;
+    padding: 12px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
     border-radius: 4px;
-    color: #d8000c;
+    color: #721c24;
+    font-weight: 500;
 }
 
 .lunio-powered-by {
@@ -64,4 +122,30 @@
     text-align: center;
     font-size: 12px;
     color: #666;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+    .lunio-tax-calculator {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .lunio-form-group input,
+    .lunio-form-group select {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    #lunio-calculate-btn {
+        font-size: 16px;
+        padding: 14px;
+    }
+
+    .lunio-result-header {
+        font-size: 16px;
+    }
+
+    .lunio-result-row span:last-child {
+        font-size: 14px;
+    }
 }
