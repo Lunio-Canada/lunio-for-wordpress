@@ -1,0 +1,67 @@
+.lunio-tax-calculator {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.lunio-form-group {
+    margin-bottom: 15px;
+}
+
+.lunio-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.lunio-form-group input,
+.lunio-form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#lunio-calculate-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007cba;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#lunio-calculate-btn:hover {
+    background: #005a87;
+}
+
+#lunio-result {
+    margin-top: 20px;
+    padding: 10px;
+    background: #f0f8ff;
+    border: 1px solid #add8e6;
+    border-radius: 4px;
+}
+
+#lunio-error {
+    margin-top: 20px;
+    padding: 10px;
+    background: #ffe6e6;
+    border: 1px solid #ffcccc;
+    border-radius: 4px;
+    color: #d8000c;
+}
+
+.lunio-powered-by {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+}
