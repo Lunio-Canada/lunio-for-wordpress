@@ -133,19 +133,28 @@ class Lunio_Admin {
             return;
         }
         $api_client = new Lunio_API_Client();
+        $debug = get_option('lunio_debug_mode', false);
         $response = $api_client->calculate_tax(array('province_code' => 'NL', 'amount' => 100));
-        if (is_wp_error($response)) {
+        if ($debug) {
+            error_log('Test Connection Response: ' . print_r($response, true));
+        }
+        if (!is_wp_error($response) && is_array($response) && isset($response['success']) && $response['success'] === true && isset($response['data']['total'])) {
+            wp_send_json_success(array('message' => '<div class="notice notice-success"><p>' . esc_html__('Connection successful!', 'lunio-wp') . '</p></div>'));
+        } elseif (!is_wp_error($response) && is_array($response) && isset($response['success']) && $response['success'] === false) {
+            $error_msg = isset($response['message']) ? $response['message'] : 'API returned success: false';
+            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('API Error: ', 'lunio-wp') . esc_html($error_msg) . '</p></div>'));
+        } elseif (!is_wp_error($response)) {
+            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('Lunio responded, but the plugin could not understand the response format.', 'lunio-wp') . '</p></div>'));
+        } else {
             $msg = $response->get_error_message();
             if (strpos($msg, '401') !== false) {
                 $error_msg = esc_html__('Invalid Lunio API key or unauthorized request.', 'lunio-wp');
+            } elseif (strpos($msg, '422') !== false) {
+                $error_msg = esc_html__('Validation error: ', 'lunio-wp') . esc_html($msg);
             } else {
                 $error_msg = esc_html__('Connection failed: ', 'lunio-wp') . esc_html($msg);
             }
             wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . $error_msg . '</p></div>'));
-        } elseif (is_array($response) && isset($response['total'])) {
-            wp_send_json_success(array('message' => '<div class="notice notice-success"><p>' . esc_html__('Connection successful!', 'lunio-wp') . '</p></div>'));
-        } else {
-            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('Unexpected API response.', 'lunio-wp') . '</p></div>'));
         }
     }
 }

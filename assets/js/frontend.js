@@ -29,10 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             btn.disabled = false;
             btn.textContent = 'Calculate Tax';
-            if (data.success) {
+            if (data.success && data.data && data.data.result && data.data.result.success === true && data.data.result.data) {
                 showResult(data.data.result);
-            } else {
+            } else if (data.success === false && data.data && data.data.message) {
                 showError(data.data.message);
+            } else {
+                showError('Unexpected response format.');
             }
         })
         .catch(error => {
@@ -42,14 +44,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     function showResult(result) {
+        if (!result.data) {
+            showError('Invalid response data.');
+            return;
+        }
+        let d = result.data;
         let html = '<h3>Tax Calculation</h3>';
-        html += '<p>Subtotal: $' + result.subtotal.toFixed(2) + '</p>';
-        if (result.gst > 0) html += '<p>GST: $' + result.gst.toFixed(2) + '</p>';
-        if (result.hst > 0) html += '<p>HST: $' + result.hst.toFixed(2) + '</p>';
-        if (result.pst > 0) html += '<p>PST: $' + result.pst.toFixed(2) + '</p>';
-        if (result.qst > 0) html += '<p>QST: $' + result.qst.toFixed(2) + '</p>';
-        html += '<p>Total Tax: $' + result.total_tax.toFixed(2) + '</p>';
-        html += '<p>Total: $' + result.total.toFixed(2) + '</p>';
+        html += '<p>Province: ' + d.province_code + '</p>';
+        html += '<p>Subtotal: $' + parseFloat(d.subtotal).toFixed(2) + '</p>';
+        if (d.tax.gst > 0) html += '<p>GST: $' + parseFloat(d.tax.gst).toFixed(2) + '</p>';
+        if (d.tax.hst > 0) html += '<p>HST: $' + parseFloat(d.tax.hst).toFixed(2) + '</p>';
+        if (d.tax.pst > 0) html += '<p>PST: $' + parseFloat(d.tax.pst).toFixed(2) + '</p>';
+        if (d.tax.qst > 0) html += '<p>QST: $' + parseFloat(d.tax.qst).toFixed(2) + '</p>';
+        html += '<p>Total Tax: $' + parseFloat(d.tax.total_tax).toFixed(2) + '</p>';
+        html += '<p>Total: $' + parseFloat(d.total).toFixed(2) + '</p>';
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     }
