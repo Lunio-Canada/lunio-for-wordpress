@@ -497,7 +497,7 @@ class Lunio_Admin {
         }
 
         if ('github' === $update_data['channel']) {
-            $output .= '<p class="lunio-update-note">' . esc_html__('For the best one-click update experience, attach a release asset named lunio-for-wordpress.zip to each GitHub release.', 'lunio-wp') . '</p>';
+            $output .= '<p class="lunio-update-note">' . esc_html__('This plugin receives updates directly from official Lunio releases.', 'lunio-wp') . '</p>';
         }
 
         return $output;
