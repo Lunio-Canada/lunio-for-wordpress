@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('lunio-calculate-btn');
     const showBreakdown = calculator.dataset.showBreakdown === 'true';
     const calculatorType = calculator.dataset.type;
+    const debug = calculator.dataset.debug === '1';
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const amount = document.getElementById('lunio-amount').value.trim();
@@ -24,17 +25,33 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.textContent = 'Calculating...';
         hideResult();
         hideError();
-        const data = new FormData();
-        data.append('action', 'lunio_calculate_tax');
-        data.append('nonce', lunioAjax.nonce);
-        data.append('amount', amount);
-        data.append('province_code', province);
+        const formData = new FormData();
+        formData.append('action', 'lunio_calculate_tax');
+        formData.append('nonce', lunioAjax.nonce);
+        formData.append('amount', amount);
+        formData.append('province_code', province);
+        formData.append('type', calculatorType);
+        if (debug) {
+            console.log('Outgoing AJAX Payload:', {
+                action: 'lunio_calculate_tax',
+                nonce: lunioAjax.nonce,
+                amount: amount,
+                province_code: province,
+                type: calculatorType
+            });
+        }
         fetch(lunioAjax.ajaxurl, {
             method: 'POST',
-            body: data
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
+            if (debug) {
+                console.log('AJAX Response:', data);
+                if (data.success && data.data && data.data.result) {
+                    console.log('Parsed Calculator Result:', data.data.result);
+                }
+            }
             btn.disabled = false;
             btn.textContent = 'Calculate Tax';
             if (data.success && data.data && data.data.result && data.data.result.success === true && data.data.result.data) {

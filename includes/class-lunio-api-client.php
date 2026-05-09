@@ -31,21 +31,39 @@ class Lunio_API_Client {
 
     public function calculate_tax($data) {
         $url = $this->base_url . '/tax/calculate';
+        $body = wp_json_encode($data);
+        if ($this->debug) {
+            error_log('Standard API URL: ' . $url);
+            error_log('Standard API Headers: ' . print_r($this->get_headers(), true));
+            error_log('Standard API Payload: ' . $body);
+        }
         $response = wp_remote_post($url, array(
             'headers' => $this->get_headers(),
-            'body' => wp_json_encode($data),
+            'body' => $body,
             'timeout' => 30,
         ));
+        if ($this->debug) {
+            error_log('Standard wp_remote_post Response: ' . print_r($response, true));
+        }
         return $this->handle_response($response);
     }
 
     public function reverse_calculate_tax($data) {
         $url = $this->base_url . '/tax/reverse';
+        $body = wp_json_encode($data);
+        if ($this->debug) {
+            error_log('Reverse API URL: ' . $url);
+            error_log('Reverse API Headers: ' . print_r($this->get_headers(), true));
+            error_log('Reverse API Payload: ' . $body);
+        }
         $response = wp_remote_post($url, array(
             'headers' => $this->get_headers(),
-            'body' => wp_json_encode($data),
+            'body' => $body,
             'timeout' => 30,
         ));
+        if ($this->debug) {
+            error_log('Reverse wp_remote_post Response: ' . print_r($response, true));
+        }
         return $this->handle_response($response);
     }
 
@@ -73,6 +91,12 @@ class Lunio_API_Client {
         if ($this->debug) {
             error_log('Lunio API Response Status: ' . $status_code);
             error_log('Lunio API Response Body: ' . $body);
+            $data = json_decode($body, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                error_log('Lunio API Parsed JSON: ' . print_r($data, true));
+            } else {
+                error_log('Lunio API JSON Decode Error: ' . json_last_error_msg());
+            }
         }
 
         if ($status_code !== 200) {

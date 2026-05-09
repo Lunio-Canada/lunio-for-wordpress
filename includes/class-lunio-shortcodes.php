@@ -65,7 +65,7 @@ class Lunio_Shortcodes {
         }
         ob_start();
         ?>
-        <div class="<?php echo esc_attr($classes); ?>" data-type="<?php echo esc_attr($type); ?>" data-show-breakdown="<?php echo $show_breakdown ? 'true' : 'false'; ?>" data-layout="<?php echo esc_attr($layout); ?>">
+        <div class="<?php echo esc_attr($classes); ?>" data-type="<?php echo esc_attr($type); ?>" data-show-breakdown="<?php echo $show_breakdown ? 'true' : 'false'; ?>" data-layout="<?php echo esc_attr($layout); ?>" data-debug="<?php echo get_option('lunio_debug_mode', false) ? '1' : '0'; ?>">
             <form id="lunio-tax-form">
                 <input type="hidden" name="type" value="<?php echo esc_attr($type); ?>" />
                 <div class="lunio-form-group">
@@ -119,21 +119,51 @@ class Lunio_Shortcodes {
             wp_send_json_error(array('message' => __('Invalid province', 'lunio-wp')));
         }
         $api_client = new Lunio_API_Client();
+        $debug = get_option('lunio_debug_mode', false);
+        if ($debug) {
+            error_log('Calculator Type Received: ' . $type);
+        }
         if ($type === 'reverse') {
-            $response = $api_client->reverse_calculate_tax(array(
-                'amount' => floatval($amount),
+            $payload = array(
+                'total' => floatval($amount),
                 'province_code' => $province_code,
-            ));
+            );
+            if ($debug) {
+                error_log('Reverse Calculator Endpoint: /tax/reverse');
+                error_log('Reverse Calculator Payload: ' . print_r($payload, true));
+            }
+            $response = $api_client->reverse_calculate_tax($payload);
         } else {
-            $response = $api_client->calculate_tax(array(
+            $payload = array(
                 'amount' => floatval($amount),
                 'province_code' => $province_code,
-            ));
+            );
+            if ($debug) {
+                error_log('Standard Calculator Endpoint: /tax/calculate');
+                error_log('Standard Calculator Payload: ' . print_r($payload, true));
+            }
+            $response = $api_client->calculate_tax($payload);
+        }
+        if ($debug) {
+            error_log('Raw Lunio API Response: ' . print_r($response, true));
         }
         if (is_wp_error($response)) {
-            wp_send_json_error(array('message' => __('Calculation failed: ', 'lunio-wp') . $response->get_error_message()));
-        } else {
+            $error_msg = $response->get_error_message();
+            if ($debug) {
+                error_log('Calculation Error: ' . $error_msg);
+                wp_send_json_error(array('message' => __('Debug: ', 'lunio-wp') . $error_msg));
+            } else {
+                wp_send_json_error(array('message' => __('Calculation failed. Please check the amount and province, then try again.', 'lunio-wp')));
+            }
+        } elseif (is_array($response) && isset($response['success']) && $response['success'] === true && isset($response['data'])) {
             wp_send_json_success(array('result' => $response));
+        } else {
+            if ($debug) {
+                error_log('Invalid Response Structure: ' . print_r($response, true));
+                wp_send_json_error(array('message' => __('Debug: Invalid API response structure.', 'lunio-wp')));
+            } else {
+                wp_send_json_error(array('message' => __('Calculation failed. Please check the amount and province, then try again.', 'lunio-wp')));
+            }
         }
     }
 }
