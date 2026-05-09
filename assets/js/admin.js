@@ -17,6 +17,16 @@ jQuery(document).ready(function($) {
         $('#lunio-account-details').html(html);
     }
 
+    function updatePluginStatus(cardHtml, cardClass) {
+        var card = $('#lunio-update-card');
+
+        if (!card.length) {
+            return;
+        }
+
+        card.attr('class', 'lunio-update-card ' + cardClass).html(cardHtml);
+    }
+
     $('#lunio-test-connection').on('click', function(e) {
         e.preventDefault();
         console.log('Test Connection clicked');
@@ -66,6 +76,38 @@ jQuery(document).ready(function($) {
             console.error('Refresh Status AJAX failed:', status, error);
             $('#lunio-refresh-result').html('<div class="notice notice-error"><p>AJAX error: ' + status + '</p></div>');
             button.prop('disabled', false).text('Refresh Status');
+        });
+    });
+
+    $('#lunio-check-updates').on('click', function(e) {
+        e.preventDefault();
+        console.log('Check for Updates clicked');
+        var button = $(this);
+        button.prop('disabled', true).text('Checking...');
+
+        $.post(lunioAjax.ajaxurl, {
+            action: 'lunio_check_updates',
+            nonce: lunioAjax.update_nonce
+        }, function(response) {
+            console.log('Check for Updates response:', response);
+
+            if (response.success && response.data) {
+                if (response.data.card_html && response.data.card_class) {
+                    updatePluginStatus(response.data.card_html, response.data.card_class);
+                }
+
+                if (response.data.message) {
+                    $('#lunio-update-result').html(response.data.message);
+                }
+            } else {
+                $('#lunio-update-result').html('<div class="notice notice-error"><p>Unable to check for updates.</p></div>');
+            }
+
+            button.prop('disabled', false).text('Check for Updates');
+        }).fail(function(xhr, status, error) {
+            console.error('Check for Updates AJAX failed:', status, error);
+            $('#lunio-update-result').html('<div class="notice notice-error"><p>AJAX error: ' + status + '</p></div>');
+            button.prop('disabled', false).text('Check for Updates');
         });
     });
 

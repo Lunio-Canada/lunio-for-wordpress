@@ -3,7 +3,7 @@
  * Plugin Name: Lunio for WordPress
  * Plugin URI: https://lunio.ca/wordpress-plugin
  * Description: Embed a Canadian tax calculator using the Lunio Developer API.
- * Version: 0.5.0
+ * Version: 0.6.0
  * Author: Lunio
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -16,9 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define constants
-define( 'LUNIO_WP_VERSION', '0.5.0' );
+define( 'LUNIO_WP_VERSION', '0.6.0' );
 define( 'LUNIO_WP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LUNIO_WP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+if ( ! defined( 'LUNIO_WP_UPDATE_CHANNEL' ) ) {
+    define( 'LUNIO_WP_UPDATE_CHANNEL', 'github' );
+}
 
 // Load includes
 require_once LUNIO_WP_PLUGIN_DIR . 'includes/class-lunio-api-client.php';

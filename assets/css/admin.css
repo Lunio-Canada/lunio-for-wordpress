@@ -430,7 +430,82 @@
     border-top: 1px solid #e9ecef;
 }
 
+#lunio-test-result,
 #lunio-refresh-result {
+    margin-top: 10px;
+}
+
+.lunio-update-card {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    background: #f8f9fa;
+}
+
+.lunio-update-card.update-available {
+    background: #fff8e5;
+    border-color: #f0c36d;
+}
+
+.lunio-update-card.up-to-date {
+    background: #edf7ed;
+    border-color: #b7dfb9;
+}
+
+.lunio-update-card.update-error,
+.lunio-update-card.update-disabled,
+.lunio-update-card.update-wordpress-org,
+.lunio-update-card.update-unknown {
+    background: #f8f9fa;
+    border-color: #d0d7de;
+}
+
+.lunio-update-summary {
+    margin-bottom: 15px;
+}
+
+.lunio-update-badge {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 124, 186, 0.12);
+    color: #0a4b78;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.lunio-update-card.update-available .lunio-update-badge {
+    background: rgba(201, 128, 0, 0.12);
+    color: #8a5a00;
+}
+
+.lunio-update-card.up-to-date .lunio-update-badge {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1f7a43;
+}
+
+.lunio-update-message {
+    margin: 0;
+    color: #495057;
+}
+
+.lunio-update-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.lunio-update-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#lunio-update-result {
     margin-top: 10px;
 }
 

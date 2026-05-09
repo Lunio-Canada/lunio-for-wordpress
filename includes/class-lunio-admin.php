@@ -10,11 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Lunio_Admin {
 
+    const UPDATE_TRANSIENT_KEY = 'lunio_github_release_info';
+    const UPDATE_CACHE_TTL = 12 * HOUR_IN_SECONDS;
+    const GITHUB_LATEST_RELEASE_URL = 'https://api.github.com/repos/Lunio-Canada/lunio-for-wordpress/releases/latest';
+
     public function __construct() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'settings_init'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_ajax_lunio_test_connection', array($this, 'ajax_test_connection'));
+        add_action('wp_ajax_lunio_check_updates', array($this, 'ajax_check_updates'));
         add_action('wp_ajax_lunio_refresh_status', array($this, 'ajax_refresh_status'));
     }
 
@@ -94,6 +99,7 @@ class Lunio_Admin {
     public function settings_page() {
         $api_key = get_option('lunio_api_key', '');
         $api_connected = !empty($api_key);
+        $update_data = $this->get_update_status();
         ?>
         <div class="wrap lunio-admin-wrap">
             <!-- Hero Status Card -->
@@ -281,9 +287,6 @@ class Lunio_Admin {
                     <!-- API Status -->
                     <div class="lunio-card">
                         <h3><?php esc_html_e('API Status', 'lunio-wp'); ?></h3>
-                        <?php
-                        // Account status temporarily removed for debugging
-                        ?>
                         <div class="lunio-api-status <?php echo $api_connected ? 'connected' : 'disconnected'; ?>">
                             <div class="lunio-status-icon"><?php echo $api_connected ? '✓' : '⚠'; ?></div>
                             <div class="lunio-status-text">
@@ -299,6 +302,17 @@ class Lunio_Admin {
                         <div class="lunio-status-actions">
                             <button id="lunio-refresh-status" class="button button-secondary"><?php esc_html_e('Refresh Status', 'lunio-wp'); ?></button>
                             <div id="lunio-refresh-result"></div>
+                        </div>
+                    </div>
+
+                    <div class="lunio-card">
+                        <h3><?php esc_html_e('Plugin Updates', 'lunio-wp'); ?></h3>
+                        <div id="lunio-update-card" class="lunio-update-card <?php echo esc_attr($this->get_update_status_class($update_data['status'])); ?>">
+                            <?php echo $this->render_update_status_html($update_data); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </div>
+                        <div class="lunio-update-actions">
+                            <button id="lunio-check-updates" class="button button-secondary" <?php disabled($update_data['channel'], 'disabled'); ?>><?php esc_html_e('Check for Updates', 'lunio-wp'); ?></button>
+                            <div id="lunio-update-result"></div>
                         </div>
                     </div>
 
@@ -347,7 +361,26 @@ class Lunio_Admin {
         wp_localize_script('lunio-admin-js', 'lunioAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'test_nonce' => wp_create_nonce('lunio_test_connection'),
+            'update_nonce' => wp_create_nonce('lunio_check_updates'),
             'refresh_nonce' => wp_create_nonce('lunio_refresh_status'),
+        ));
+    }
+
+    public function ajax_check_updates() {
+        check_ajax_referer('lunio_check_updates', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => '<div class="notice notice-error"><p>' . esc_html__('Insufficient permissions.', 'lunio-wp') . '</p></div>',
+            ));
+        }
+
+        $update_data = $this->get_update_status(true);
+
+        wp_send_json_success(array(
+            'message' => '<div class="notice notice-success"><p>' . esc_html__('Update check completed.', 'lunio-wp') . '</p></div>',
+            'card_html' => $this->render_update_status_html($update_data),
+            'card_class' => $this->get_update_status_class($update_data['status']),
         ));
     }
 
@@ -432,5 +465,218 @@ class Lunio_Admin {
 
     public function clear_status_cache() {
         delete_transient('lunio_account_status');
+    }
+
+    private function get_update_status($force_refresh = false) {
+        $channel = apply_filters('lunio_wp_update_channel', LUNIO_WP_UPDATE_CHANNEL);
+        $installed_version = $this->normalize_version(LUNIO_WP_VERSION);
+
+        $status = array(
+            'channel' => $channel,
+            'installed_version' => $installed_version,
+            'latest_version' => __('Not checked yet', 'lunio-wp'),
+            'last_checked' => '',
+            'status' => 'unknown',
+            'status_label' => __('Unable to check', 'lunio-wp'),
+            'status_message' => __('Update status has not been checked yet.', 'lunio-wp'),
+            'release_url' => '',
+            'download_url' => '',
+        );
+
+        if ('disabled' === $channel) {
+            $status['status'] = 'disabled';
+            $status['status_label'] = __('Disabled', 'lunio-wp');
+            $status['status_message'] = __('GitHub update checks are disabled for this site.', 'lunio-wp');
+
+            return $status;
+        }
+
+        if ('wordpress_org' === $channel) {
+            $status['status'] = 'wordpress_org';
+            $status['status_label'] = __('Managed by WordPress.org', 'lunio-wp');
+            $status['status_message'] = __('WordPress.org will handle plugin update notifications for this channel.', 'lunio-wp');
+
+            return $status;
+        }
+
+        $release_data = $this->get_latest_github_release($force_refresh);
+
+        if (isset($release_data['last_checked']) && is_numeric($release_data['last_checked'])) {
+            $status['last_checked'] = $this->format_last_checked((int) $release_data['last_checked']);
+        }
+
+        if (isset($release_data['error']) && '' !== $release_data['error']) {
+            $status['status'] = 'error';
+            $status['status_label'] = __('Unable to check', 'lunio-wp');
+            $status['status_message'] = $release_data['error'];
+
+            return $status;
+        }
+
+        if (empty($release_data['version'])) {
+            $status['status'] = 'error';
+            $status['status_label'] = __('Unable to check', 'lunio-wp');
+            $status['status_message'] = __('No GitHub releases were found.', 'lunio-wp');
+
+            return $status;
+        }
+
+        $status['latest_version'] = $release_data['version'];
+        $status['release_url'] = isset($release_data['release_url']) ? $release_data['release_url'] : '';
+        $status['download_url'] = isset($release_data['download_url']) ? $release_data['download_url'] : '';
+
+        if (version_compare($this->normalize_version($release_data['version']), $installed_version, '>')) {
+            $status['status'] = 'update_available';
+            $status['status_label'] = __('Update available', 'lunio-wp');
+            $status['status_message'] = __('A newer GitHub release is available for download.', 'lunio-wp');
+
+            return $status;
+        }
+
+        $status['status'] = 'up_to_date';
+        $status['status_label'] = __('Up to date', 'lunio-wp');
+        $status['status_message'] = __('You are using the latest available GitHub release.', 'lunio-wp');
+
+        return $status;
+    }
+
+    private function get_latest_github_release($force_refresh = false) {
+        if (!$force_refresh) {
+            $cached = get_transient(self::UPDATE_TRANSIENT_KEY);
+
+            if (false !== $cached && is_array($cached)) {
+                return $cached;
+            }
+        }
+
+        $debug = (bool) get_option('lunio_debug_mode', false);
+        $fallback_message = __('Unable to check GitHub releases right now. Please try again later.', 'lunio-wp');
+        $response = wp_remote_get(
+            self::GITHUB_LATEST_RELEASE_URL,
+            array(
+                'timeout' => 15,
+                'headers' => array(
+                    'Accept' => 'application/vnd.github+json',
+                    'User-Agent' => 'Lunio-WordPress-Plugin/' . LUNIO_WP_VERSION . '; ' . home_url('/'),
+                ),
+            )
+        );
+
+        if (is_wp_error($response)) {
+            $result = array(
+                'error' => $debug ? $response->get_error_message() : $fallback_message,
+                'last_checked' => time(),
+            );
+            set_transient(self::UPDATE_TRANSIENT_KEY, $result, self::UPDATE_CACHE_TTL);
+
+            return $result;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+
+        if (200 !== $status_code) {
+            $message = $fallback_message;
+
+            if (403 === $status_code) {
+                $message = __('GitHub rate limit reached. Please try again later.', 'lunio-wp');
+            } elseif ($debug) {
+                $message = sprintf(__('GitHub API returned status %d.', 'lunio-wp'), $status_code);
+            }
+
+            $result = array(
+                'error' => $message,
+                'last_checked' => time(),
+            );
+            set_transient(self::UPDATE_TRANSIENT_KEY, $result, self::UPDATE_CACHE_TTL);
+
+            return $result;
+        }
+
+        $data = json_decode($body, true);
+
+        if (JSON_ERROR_NONE !== json_last_error() || !is_array($data)) {
+            $result = array(
+                'error' => $debug ? __('GitHub returned malformed JSON.', 'lunio-wp') : $fallback_message,
+                'last_checked' => time(),
+            );
+            set_transient(self::UPDATE_TRANSIENT_KEY, $result, self::UPDATE_CACHE_TTL);
+
+            return $result;
+        }
+
+        if (empty($data['tag_name'])) {
+            $result = array(
+                'error' => __('No GitHub releases were found.', 'lunio-wp'),
+                'last_checked' => time(),
+            );
+            set_transient(self::UPDATE_TRANSIENT_KEY, $result, self::UPDATE_CACHE_TTL);
+
+            return $result;
+        }
+
+        $result = array(
+            'version' => sanitize_text_field($data['tag_name']),
+            'release_url' => isset($data['html_url']) ? esc_url_raw($data['html_url']) : '',
+            'download_url' => isset($data['zipball_url']) ? esc_url_raw($data['zipball_url']) : '',
+            'last_checked' => time(),
+        );
+
+        set_transient(self::UPDATE_TRANSIENT_KEY, $result, self::UPDATE_CACHE_TTL);
+
+        return $result;
+    }
+
+    private function render_update_status_html($update_data) {
+        $output = '<div class="lunio-update-summary">';
+        $output .= '<div class="lunio-update-badge">' . esc_html($update_data['status_label']) . '</div>';
+        $output .= '<p class="lunio-update-message">' . esc_html($update_data['status_message']) . '</p>';
+        $output .= '</div>';
+        $output .= '<div class="lunio-account-details">';
+        $output .= '<div class="lunio-status-row"><span>' . esc_html__('Current version', 'lunio-wp') . '</span><span>' . esc_html($update_data['installed_version']) . '</span></div>';
+        $output .= '<div class="lunio-status-row"><span>' . esc_html__('Latest GitHub release', 'lunio-wp') . '</span><span>' . esc_html($update_data['latest_version']) . '</span></div>';
+        $output .= '<div class="lunio-status-row"><span>' . esc_html__('Last checked', 'lunio-wp') . '</span><span>' . esc_html($update_data['last_checked'] ? $update_data['last_checked'] : __('Never', 'lunio-wp')) . '</span></div>';
+        $output .= '<div class="lunio-status-row"><span>' . esc_html__('Status', 'lunio-wp') . '</span><span>' . esc_html($update_data['status_label']) . '</span></div>';
+        $output .= '</div>';
+
+        if ('update_available' === $update_data['status']) {
+            $output .= '<div class="lunio-update-links">';
+
+            if (!empty($update_data['release_url'])) {
+                $output .= '<a class="button button-primary" href="' . esc_url($update_data['release_url']) . '" target="_blank" rel="noopener noreferrer">' . esc_html__('View GitHub Release', 'lunio-wp') . '</a>';
+            }
+
+            if (!empty($update_data['download_url'])) {
+                $output .= '<a class="button button-secondary" href="' . esc_url($update_data['download_url']) . '" target="_blank" rel="noopener noreferrer">' . esc_html__('Download Latest ZIP', 'lunio-wp') . '</a>';
+            }
+
+            $output .= '</div>';
+        }
+
+        return $output;
+    }
+
+    private function get_update_status_class($status) {
+        $classes = array(
+            'update_available' => 'update-available',
+            'up_to_date' => 'up-to-date',
+            'error' => 'update-error',
+            'disabled' => 'update-disabled',
+            'wordpress_org' => 'update-wordpress-org',
+            'unknown' => 'update-unknown',
+        );
+
+        return isset($classes[$status]) ? $classes[$status] : 'update-unknown';
+    }
+
+    private function format_last_checked($timestamp) {
+        return sprintf(
+            __('%1$s ago', 'lunio-wp'),
+            human_time_diff($timestamp, current_time('timestamp'))
+        );
+    }
+
+    private function normalize_version($version) {
+        return ltrim((string) $version, "vV \t\n\r\0\x0B");
     }
 }
