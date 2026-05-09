@@ -69,7 +69,7 @@ class Lunio_Admin {
     }
 
     public function settings_section_callback() {
-        echo '<p>' . esc_html__('Configure your Lunio API settings here.', 'lunio-wp') . '</p>';
+        echo '<p>' . esc_html__('Configure your Lunio API settings below. Save changes to apply.', 'lunio-wp') . '</p>';
     }
 
     public function api_key_render() {
@@ -91,21 +91,204 @@ class Lunio_Admin {
     }
 
     public function settings_page() {
+        $api_key = get_option('lunio_api_key', '');
+        $api_connected = !empty($api_key);
         ?>
-        <div class="wrap">
-            <h1><?php esc_html_e('Lunio Settings', 'lunio-wp'); ?></h1>
-            <form action="options.php" method="post">
-                <?php
-                settings_fields('lunio_settings');
-                do_settings_sections('lunio_settings');
-                submit_button();
-                ?>
-            </form>
-            <hr />
-            <h2><?php esc_html_e('Test Connection', 'lunio-wp'); ?></h2>
-            <p><?php esc_html_e('Test Connection verifies your API key using a small authenticated tax calculation request.', 'lunio-wp'); ?></p>
-            <button id="lunio-test-connection" class="button button-secondary"><?php esc_html_e('Test Connection', 'lunio-wp'); ?></button>
-            <div id="lunio-test-result"></div>
+        <div class="wrap lunio-admin-wrap">
+            <!-- Hero Status Card -->
+            <div class="lunio-hero-card">
+                <div class="lunio-hero-content">
+                    <h1>Lunio for WordPress</h1>
+                    <p><?php esc_html_e('Embed a professional Canadian tax calculator on your website with real-time calculations.', 'lunio-wp'); ?></p>
+                    <div class="lunio-status-badges">
+                        <span class="lunio-version-badge">v<?php echo esc_html(LUNIO_WP_VERSION); ?></span>
+                        <span class="lunio-connection-badge <?php echo $api_connected ? 'connected' : 'disconnected'; ?>">
+                            <?php echo $api_connected ? '✓ Connected' : '⚠ Not Connected'; ?>
+                        </span>
+                    </div>
+                </div>
+                <div class="lunio-hero-actions">
+                    <a href="https://lunio.ca" target="_blank" rel="noopener noreferrer" class="button button-primary">Documentation</a>
+                    <a href="https://lunio.ca/support" target="_blank" rel="noopener noreferrer" class="button button-secondary">Support</a>
+                </div>
+            </div>
+
+            <!-- Setup Progress -->
+            <div class="lunio-setup-progress">
+                <h2><?php esc_html_e('Setup Progress', 'lunio-wp'); ?></h2>
+                <ul class="lunio-progress-list">
+                    <li class="completed">✓ Plugin Activated</li>
+                    <li class="<?php echo $api_connected ? 'completed' : 'pending'; ?>"><?php echo $api_connected ? '✓' : '□'; ?> API Key Added</li>
+                    <li class="pending">□ Add Calculator Shortcode To Page</li>
+                </ul>
+            </div>
+
+            <div class="lunio-admin-columns">
+                <!-- Left Column -->
+                <div class="lunio-main-column">
+                    <!-- API Settings -->
+                    <div class="lunio-card">
+                        <h2><?php esc_html_e('API Configuration', 'lunio-wp'); ?></h2>
+                        <form action="options.php" method="post">
+                            <?php
+                            settings_fields('lunio_settings');
+                            do_settings_sections('lunio_settings');
+                            submit_button(__('Save Settings', 'lunio-wp'));
+                            ?>
+                        </form>
+                        <div class="lunio-test-section">
+                            <button id="lunio-test-connection" class="button button-secondary"><?php esc_html_e('Test Connection', 'lunio-wp'); ?></button>
+                            <div id="lunio-test-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- Shortcode Cards -->
+                    <div class="lunio-card">
+                        <h2><?php esc_html_e('Shortcode Examples', 'lunio-wp'); ?></h2>
+                        <div class="lunio-shortcode-grid">
+                            <div class="lunio-shortcode-card">
+                                <h3>Basic Calculator</h3>
+                                <p>Standard tax calculator with full layout.</p>
+                                <code>[lunio_tax_calculator]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator]">Copy</button>
+                            </div>
+                            <div class="lunio-shortcode-card">
+                                <h3>Pre-selected Province</h3>
+                                <p>Calculator with Ontario pre-selected.</p>
+                                <code>[lunio_tax_calculator province="ON"]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator province=&quot;ON&quot;]">Copy</button>
+                            </div>
+                            <div class="lunio-shortcode-card">
+                                <h3>Compact Layout</h3>
+                                <p>Smaller calculator design.</p>
+                                <code>[lunio_tax_calculator layout="compact"]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator layout=&quot;compact&quot;]">Copy</button>
+                            </div>
+                            <div class="lunio-shortcode-card">
+                                <h3>Simple View</h3>
+                                <p>Hides tax breakdown, shows totals only.</p>
+                                <code>[lunio_tax_calculator show_breakdown="false"]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator show_breakdown=&quot;false&quot;]">Copy</button>
+                            </div>
+                            <div class="lunio-shortcode-card">
+                                <h3>Custom Setup</h3>
+                                <p>Fully customized calculator.</p>
+                                <code>[lunio_tax_calculator province="ON" show_breakdown="true" powered_by="true" layout="compact"]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator province=&quot;ON&quot; show_breakdown=&quot;true&quot; powered_by=&quot;true&quot; layout=&quot;compact&quot;]">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculator Preview -->
+                    <div class="lunio-card">
+                        <h2><?php esc_html_e('Calculator Preview', 'lunio-wp'); ?></h2>
+                        <p><?php esc_html_e('Preview of how the tax calculator appears on your site.', 'lunio-wp'); ?></p>
+                        <div class="lunio-calculator-preview">
+                            <div class="lunio-preview-calculator">
+                                <div class="lunio-preview-group">
+                                    <label>Amount ($)</label>
+                                    <input type="number" placeholder="100.00" disabled />
+                                </div>
+                                <div class="lunio-preview-group">
+                                    <label>Province</label>
+                                    <select disabled><option>Ontario</option></select>
+                                </div>
+                                <button class="lunio-preview-btn" disabled>Calculate Tax</button>
+                                <div class="lunio-preview-result">
+                                    <div class="lunio-preview-result-header">Tax Calculation for ON</div>
+                                    <div class="lunio-preview-result-row"><span>Subtotal:</span><span>$100.00</span></div>
+                                    <div class="lunio-preview-result-row"><span>HST:</span><span>$13.00</span></div>
+                                    <div class="lunio-preview-result-row lunio-preview-total-tax"><span>Total Tax:</span><span>$13.00</span></div>
+                                    <div class="lunio-preview-result-row lunio-preview-grand-total"><span>Total:</span><span>$113.00</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Troubleshooting -->
+                    <div class="lunio-card">
+                        <h2><?php esc_html_e('Troubleshooting', 'lunio-wp'); ?></h2>
+                        <div class="lunio-accordion">
+                            <div class="lunio-accordion-item">
+                                <button class="lunio-accordion-toggle">Missing API Key</button>
+                                <div class="lunio-accordion-content">
+                                    <p><?php esc_html_e('Enter your Lunio API key in the API Configuration section above and save the settings.', 'lunio-wp'); ?></p>
+                                </div>
+                            </div>
+                            <div class="lunio-accordion-item">
+                                <button class="lunio-accordion-toggle">Invalid API Key</button>
+                                <div class="lunio-accordion-content">
+                                    <p><?php esc_html_e('Verify your API key is correct and active. Use the Test Connection button to check.', 'lunio-wp'); ?></p>
+                                </div>
+                            </div>
+                            <div class="lunio-accordion-item">
+                                <button class="lunio-accordion-toggle">Shortcode Not Appearing</button>
+                                <div class="lunio-accordion-content">
+                                    <p><?php esc_html_e('Ensure the shortcode is added to the content of a page or post, not in a sidebar or header widget.', 'lunio-wp'); ?></p>
+                                </div>
+                            </div>
+                            <div class="lunio-accordion-item">
+                                <button class="lunio-accordion-toggle">Calculator Shows Error</button>
+                                <div class="lunio-accordion-content">
+                                    <p><?php esc_html_e('Check that your server can make HTTPS requests. Enable debug mode in settings for detailed logs.', 'lunio-wp'); ?></p>
+                                </div>
+                            </div>
+                            <div class="lunio-accordion-item">
+                                <button class="lunio-accordion-toggle">Theme/Plugin Conflicts</button>
+                                <div class="lunio-accordion-content">
+                                    <p><?php esc_html_e('Temporarily switch to a default WordPress theme and disable other plugins to isolate issues.', 'lunio-wp'); ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="lunio-sidebar-column">
+                    <!-- Quick Actions -->
+                    <div class="lunio-card">
+                        <h3><?php esc_html_e('Quick Actions', 'lunio-wp'); ?></h3>
+                        <div class="lunio-quick-copy">
+                            <p><?php esc_html_e('Popular Shortcode:', 'lunio-wp'); ?></p>
+                            <code>[lunio_tax_calculator]</code>
+                            <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator]">Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- API Status -->
+                    <div class="lunio-card">
+                        <h3><?php esc_html_e('API Status', 'lunio-wp'); ?></h3>
+                        <div class="lunio-api-status <?php echo $api_connected ? 'connected' : 'disconnected'; ?>">
+                            <div class="lunio-status-icon"><?php echo $api_connected ? '✓' : '⚠'; ?></div>
+                            <div class="lunio-status-text">
+                                <strong><?php echo $api_connected ? 'Connected' : 'Not Connected'; ?></strong>
+                                <p><?php echo $api_connected ? 'Your API key is configured.' : 'Add your API key to get started.'; ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plugin Info -->
+                    <div class="lunio-card">
+                        <h3><?php esc_html_e('Plugin Info', 'lunio-wp'); ?></h3>
+                        <ul class="lunio-plugin-info">
+                            <li><strong>Version:</strong> <?php echo esc_html(LUNIO_WP_VERSION); ?></li>
+                            <li><strong>Author:</strong> Lunio</li>
+                            <li><strong>License:</strong> GPL v2 or later</li>
+                        </ul>
+                    </div>
+
+                    <!-- Links -->
+                    <div class="lunio-card">
+                        <h3><?php esc_html_e('Resources', 'lunio-wp'); ?></h3>
+                        <ul class="lunio-resource-links">
+                            <li><a href="https://lunio.ca" target="_blank" rel="noopener noreferrer">🌐 Lunio Website</a></li>
+                            <li><a href="https://lunio.ca/docs" target="_blank" rel="noopener noreferrer">📚 Documentation</a></li>
+                            <li><a href="https://lunio.ca/support" target="_blank" rel="noopener noreferrer">🆘 Support</a></li>
+                            <li><a href="https://lunio.ca/api" target="_blank" rel="noopener noreferrer">🔑 Get API Key</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php
     }

@@ -1,3 +1,474 @@
-#lunio-test-result {
-    margin-top: 10px;
+/* Lunio Admin Styles - Scoped to prevent WP admin conflicts */
+.lunio-admin-wrap {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
+    max-width: none;
+}
+
+/* Hero Card */
+.lunio-hero-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.lunio-hero-content h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    font-weight: 300;
+}
+
+.lunio-hero-content p {
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.lunio-status-badges {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.lunio-version-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+.lunio-connection-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.lunio-connection-badge.connected {
+    background: rgba(46, 204, 113, 0.8);
+}
+
+.lunio-connection-badge.disconnected {
+    background: rgba(231, 76, 60, 0.8);
+}
+
+.lunio-hero-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Setup Progress */
+.lunio-setup-progress {
+    margin-bottom: 30px;
+}
+
+.lunio-setup-progress h2 {
+    margin-bottom: 15px;
+    color: #23282d;
+}
+
+.lunio-progress-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+.lunio-progress-list li {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+}
+
+.lunio-progress-list li:last-child {
+    border-bottom: none;
+}
+
+.lunio-progress-list li.completed {
+    color: #27ae60;
+}
+
+.lunio-progress-list li.pending {
+    color: #7f8c8d;
+}
+
+/* Admin Columns */
+.lunio-admin-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+.lunio-main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.lunio-sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Cards */
+.lunio-card {
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.lunio-card h2, .lunio-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #23282d;
+}
+
+/* API Configuration */
+.lunio-test-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Shortcode Grid */
+.lunio-shortcode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.lunio-shortcode-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    transition: box-shadow 0.2s;
+}
+
+.lunio-shortcode-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lunio-shortcode-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    color: #495057;
+}
+
+.lunio-shortcode-card p {
+    margin: 0 0 12px 0;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.lunio-shortcode-card code {
+    display: block;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    word-break: break-all;
+}
+
+.lunio-copy-btn {
+    background: #007cba;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background 0.2s;
+}
+
+.lunio-copy-btn:hover {
+    background: #005a87;
+}
+
+.lunio-copy-btn.copied {
+    background: #28a745;
+}
+
+/* Calculator Preview */
+.lunio-calculator-preview {
+    display: flex;
+    justify-content: center;
+}
+
+.lunio-preview-calculator {
+    max-width: 350px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lunio-preview-group {
+    margin-bottom: 15px;
+}
+
+.lunio-preview-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.lunio-preview-group input,
+.lunio-preview-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.lunio-preview-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007cba;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.lunio-preview-result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.lunio-preview-result-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.lunio-preview-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.lunio-preview-result-row:last-child {
+    border-bottom: none;
+}
+
+.lunio-preview-result-row span:first-child {
+    font-weight: 500;
+    color: #555;
+}
+
+.lunio-preview-result-row span:last-child {
+    font-weight: 600;
+    color: #333;
+}
+
+.lunio-preview-total-tax {
+    border-top: 2px solid #ddd !important;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.lunio-preview-grand-total {
+    background: #e9ecef;
+    padding: 8px 0;
+    margin: 8px 0 -4px 0;
+    border-radius: 4px;
+}
+
+.lunio-preview-grand-total span:last-child {
+    color: #007cba;
+}
+
+/* Accordion */
+.lunio-accordion-item {
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.lunio-accordion-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 12px 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    transition: background 0.2s;
+}
+
+.lunio-accordion-toggle:hover {
+    background: #f8f9fa;
+}
+
+.lunio-accordion-toggle:focus {
+    outline: 2px solid #007cba;
+    outline-offset: -2px;
+}
+
+.lunio-accordion-content {
+    padding: 0 15px 15px 15px;
+    background: #f8f9fa;
+    display: none;
+}
+
+.lunio-accordion-content p {
+    margin: 0;
+    color: #666;
+}
+
+/* Sidebar Cards */
+.lunio-quick-copy {
+    text-align: center;
+}
+
+.lunio-quick-copy p {
+    margin: 0 0 10px 0;
+    font-weight: 500;
+}
+
+.lunio-quick-copy code {
+    display: block;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+}
+
+.lunio-api-status {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.lunio-api-status.connected {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.lunio-api-status.disconnected {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.lunio-status-icon {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.lunio-status-text strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.lunio-status-text p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.lunio-plugin-info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lunio-plugin-info li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.lunio-plugin-info li:last-child {
+    border-bottom: none;
+}
+
+.lunio-resource-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lunio-resource-links li {
+    margin-bottom: 8px;
+}
+
+.lunio-resource-links a {
+    color: #007cba;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.lunio-resource-links a:hover {
+    background: #f0f8ff;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .lunio-admin-columns {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .lunio-hero-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .lunio-hero-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .lunio-hero-card {
+        padding: 20px;
+    }
+
+    .lunio-hero-content h1 {
+        font-size: 2em;
+    }
+
+    .lunio-shortcode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lunio-preview-calculator {
+        max-width: 100%;
+    }
 }
