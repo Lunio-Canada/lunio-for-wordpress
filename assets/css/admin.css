@@ -398,6 +398,42 @@
     font-size: 14px;
 }
 
+.lunio-account-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.lunio-status-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.lunio-status-row:last-child {
+    border-bottom: none;
+}
+
+.lunio-status-row span:first-child {
+    font-weight: 500;
+    color: #495057;
+}
+
+.lunio-status-row span:last-child {
+    color: #333;
+}
+
+.lunio-status-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+#lunio-refresh-result {
+    margin-top: 10px;
+}
+
 .lunio-plugin-info {
     list-style: none;
     padding: 0;

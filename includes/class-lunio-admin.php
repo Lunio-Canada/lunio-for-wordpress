@@ -15,6 +15,7 @@ class Lunio_Admin {
         add_action('admin_init', array($this, 'settings_init'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_ajax_lunio_test_connection', array($this, 'ajax_test_connection'));
+        add_action('wp_ajax_lunio_refresh_status', array($this, 'ajax_refresh_status'));
     }
 
     public function add_admin_menu() {
@@ -280,12 +281,24 @@ class Lunio_Admin {
                     <!-- API Status -->
                     <div class="lunio-card">
                         <h3><?php esc_html_e('API Status', 'lunio-wp'); ?></h3>
+                        <?php
+                        // Account status temporarily removed for debugging
+                        ?>
                         <div class="lunio-api-status <?php echo $api_connected ? 'connected' : 'disconnected'; ?>">
                             <div class="lunio-status-icon"><?php echo $api_connected ? '✓' : '⚠'; ?></div>
                             <div class="lunio-status-text">
                                 <strong><?php echo $api_connected ? 'Connected' : 'Not Connected'; ?></strong>
                                 <p><?php echo $api_connected ? 'Your API key is configured.' : 'Add your API key to get started.'; ?></p>
                             </div>
+                        </div>
+                        <div class="lunio-account-details" id="lunio-account-details">
+                            <div class="lunio-status-row">
+                                <span><?php esc_html_e('Click "Refresh Status" to load account data.', 'lunio-wp'); ?></span>
+                            </div>
+                        </div>
+                        <div class="lunio-status-actions">
+                            <button id="lunio-refresh-status" class="button button-secondary"><?php esc_html_e('Refresh Status', 'lunio-wp'); ?></button>
+                            <div id="lunio-refresh-result"></div>
                         </div>
                     </div>
 
@@ -325,51 +338,99 @@ class Lunio_Admin {
         <?php
     }
 
-    public function enqueue_scripts($hook) {
-        if ($hook !== 'settings_page_lunio-settings') {
+    public function enqueue_scripts() {
+        if (!isset($_GET['page']) || $_GET['page'] !== 'lunio-settings') {
             return;
         }
         wp_enqueue_style('lunio-admin-css', LUNIO_WP_PLUGIN_URL . 'assets/css/admin.css', array(), LUNIO_WP_VERSION);
         wp_enqueue_script('lunio-admin-js', LUNIO_WP_PLUGIN_URL . 'assets/js/admin.js', array('jquery'), LUNIO_WP_VERSION, true);
         wp_localize_script('lunio-admin-js', 'lunioAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('lunio_test_connection'),
+            'test_nonce' => wp_create_nonce('lunio_test_connection'),
+            'refresh_nonce' => wp_create_nonce('lunio_refresh_status'),
         ));
     }
 
     public function ajax_test_connection() {
+        error_log('Lunio test connection handler reached');
         check_ajax_referer('lunio_test_connection', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => '<div class="notice notice-error"><p>' . esc_html__('Insufficient permissions.', 'lunio-wp') . '</p></div>',
+            ));
+        }
+
+        $this->clear_status_cache();
+        $api_key = get_option('lunio_api_key', '');
+
+        if (empty($api_key)) {
+            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('Please enter a Lunio API key before testing the connection.', 'lunio-wp') . '</p></div>'));
+        }
+
+        $api_client = new Lunio_API_Client();
+        $debug = (bool) get_option('lunio_debug_mode', false);
+        $response = $api_client->calculate_tax(array(
+            'province_code' => 'NL',
+            'amount' => 100,
+            'subtotal' => 100,
+        ));
+
+        if (is_wp_error($response)) {
+            $message = __('Connection test failed. Please verify your API settings and try again.', 'lunio-wp');
+
+            if ($debug) {
+                $message = $response->get_error_message();
+            }
+
+            wp_send_json_error(array(
+                'message' => '<div class="notice notice-error"><p>' . esc_html($message) . '</p></div>',
+            ));
+        }
+
+        if (!is_wp_error($response) && is_array($response) && isset($response['success']) && $response['success'] === true && isset($response['data']['total'])) {
+            wp_send_json_success(array(
+                'message' => '<div class="notice notice-success"><p>' . esc_html__('Connection successful!', 'lunio-wp') . '</p></div>',
+            ));
+        }
+
+        $message = __('Connection test failed.', 'lunio-wp');
+
+        if (is_array($response) && isset($response['message']) && is_string($response['message']) && '' !== $response['message']) {
+            $message = $response['message'];
+        }
+
+        wp_send_json_error(array(
+            'message' => '<div class="notice notice-error"><p>' . esc_html($message) . '</p></div>',
+        ));
+    }
+
+    public function ajax_refresh_status() {
+        check_ajax_referer('lunio_refresh_status', 'nonce');
         if (!current_user_can('manage_options')) {
             wp_die(__('Insufficient permissions', 'lunio-wp'));
         }
-        $api_key = get_option('lunio_api_key', '');
-        if (empty($api_key)) {
-            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('Please enter a Lunio API key before testing the connection.', 'lunio-wp') . '</p></div>'));
-            return;
+        $this->clear_status_cache();
+        $account_status = $this->get_account_status();
+        wp_send_json_success(array('account_status' => $account_status));
+    }
+
+    private function get_account_status() {
+        $cache_key = 'lunio_account_status';
+        $cached = get_transient($cache_key);
+        if ($cached !== false) {
+            return $cached;
         }
         $api_client = new Lunio_API_Client();
-        $debug = get_option('lunio_debug_mode', false);
-        $response = $api_client->calculate_tax(array('province_code' => 'NL', 'amount' => 100));
-        if ($debug) {
-            error_log('Test Connection Response: ' . print_r($response, true));
+        $response = $api_client->get_account_status();
+        if (!is_wp_error($response) && isset($response['success']) && $response['success'] === true) {
+            set_transient($cache_key, $response['data'], 5 * MINUTE_IN_SECONDS);
+            return $response['data'];
         }
-        if (!is_wp_error($response) && is_array($response) && isset($response['success']) && $response['success'] === true && isset($response['data']['total'])) {
-            wp_send_json_success(array('message' => '<div class="notice notice-success"><p>' . esc_html__('Connection successful!', 'lunio-wp') . '</p></div>'));
-        } elseif (!is_wp_error($response) && is_array($response) && isset($response['success']) && $response['success'] === false) {
-            $error_msg = isset($response['message']) ? $response['message'] : 'API returned success: false';
-            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('API Error: ', 'lunio-wp') . esc_html($error_msg) . '</p></div>'));
-        } elseif (!is_wp_error($response)) {
-            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . esc_html__('Lunio responded, but the plugin could not understand the response format.', 'lunio-wp') . '</p></div>'));
-        } else {
-            $msg = $response->get_error_message();
-            if (strpos($msg, '401') !== false) {
-                $error_msg = esc_html__('Invalid Lunio API key or unauthorized request.', 'lunio-wp');
-            } elseif (strpos($msg, '422') !== false) {
-                $error_msg = esc_html__('Validation error: ', 'lunio-wp') . esc_html($msg);
-            } else {
-                $error_msg = esc_html__('Connection failed: ', 'lunio-wp') . esc_html($msg);
-            }
-            wp_send_json_error(array('message' => '<div class="notice notice-error"><p>' . $error_msg . '</p></div>'));
-        }
+        return null;
+    }
+
+    public function clear_status_cache() {
+        delete_transient('lunio_account_status');
     }
 }

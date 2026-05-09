@@ -4,23 +4,26 @@
  */
 
 // Prevent direct access
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
-class Lunio_API_Client {
+class Lunio_API_Client
+{
 
     private $api_key;
     private $base_url;
     private $debug;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->api_key = get_option('lunio_api_key', '');
         $this->base_url = get_option('lunio_api_base_url', 'https://lunio.ca/api/v1');
         $this->debug = get_option('lunio_debug_mode', false);
     }
 
-    public function get_tax_rates() {
+    public function get_tax_rates()
+    {
         $url = $this->base_url . '/tax/rates';
         $response = wp_remote_get($url, array(
             'headers' => $this->get_headers(),
@@ -29,7 +32,8 @@ class Lunio_API_Client {
         return $this->handle_response($response);
     }
 
-    public function calculate_tax($data) {
+    public function calculate_tax($data)
+    {
         $url = $this->base_url . '/tax/calculate';
         $body = wp_json_encode($data);
         if ($this->debug) {
@@ -48,26 +52,32 @@ class Lunio_API_Client {
         return $this->handle_response($response);
     }
 
-    public function reverse_calculate_tax($data) {
+    public function reverse_calculate_tax($data)
+    {
         $url = $this->base_url . '/tax/reverse';
-        $body = wp_json_encode($data);
-        if ($this->debug) {
-            error_log('Reverse API URL: ' . $url);
-            error_log('Reverse API Headers: ' . print_r($this->get_headers(), true));
-            error_log('Reverse API Payload: ' . $body);
-        }
         $response = wp_remote_post($url, array(
             'headers' => $this->get_headers(),
-            'body' => $body,
+            'body' => wp_json_encode($data),
             'timeout' => 30,
         ));
-        if ($this->debug) {
-            error_log('Reverse wp_remote_post Response: ' . print_r($response, true));
-        }
         return $this->handle_response($response);
     }
 
-    private function get_headers() {
+    public function get_account_status()
+    {
+        $response = wp_remote_get(
+            $this->base_url . '/account/status',
+            array(
+                'headers' => $this->get_headers(),
+                'timeout' => 15,
+            )
+        );
+
+        return $this->handle_response($response);
+    }
+
+    private function get_headers()
+    {
         $headers = array(
             'Content-Type' => 'application/json',
         );
@@ -77,7 +87,8 @@ class Lunio_API_Client {
         return $headers;
     }
 
-    private function handle_response($response) {
+    private function handle_response($response)
+    {
         if (is_wp_error($response)) {
             if ($this->debug) {
                 error_log('Lunio API Error: ' . $response->get_error_message());
@@ -91,12 +102,6 @@ class Lunio_API_Client {
         if ($this->debug) {
             error_log('Lunio API Response Status: ' . $status_code);
             error_log('Lunio API Response Body: ' . $body);
-            $data = json_decode($body, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                error_log('Lunio API Parsed JSON: ' . print_r($data, true));
-            } else {
-                error_log('Lunio API JSON Decode Error: ' . json_last_error_msg());
-            }
         }
 
         if ($status_code !== 200) {
