@@ -437,6 +437,11 @@
     background: #f0f8ff;
 }
 
+/* Gutenberg Notice */
+.lunio-gutenberg-notice {
+    margin-top: 30px;
+}
+
 /* Calculator Types */
 .lunio-calculator-types {
     display: grid;

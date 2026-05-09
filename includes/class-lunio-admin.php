@@ -145,6 +145,7 @@ class Lunio_Admin {
                     <!-- Shortcode Cards -->
                     <div class="lunio-card">
                         <h2><?php esc_html_e('Shortcode Examples', 'lunio-wp'); ?></h2>
+                        <p><?php esc_html_e('Use these shortcodes directly or configure visually with the Gutenberg block.', 'lunio-wp'); ?></p>
                         <div class="lunio-shortcode-grid">
                             <div class="lunio-shortcode-card">
                                 <h3>Basic Calculator</h3>
@@ -309,6 +310,16 @@ class Lunio_Admin {
                         </ul>
                     </div>
                 </div>
+            </div>
+            <div class="lunio-gutenberg-notice">
+                <hr />
+                <h2><?php esc_html_e('Gutenberg Block Support', 'lunio-wp'); ?></h2>
+                <p><?php esc_html_e('This plugin includes a Gutenberg block for visual calculator insertion. Look for "Lunio Tax Calculator" in the block inserter under the Widgets category.', 'lunio-wp'); ?></p>
+                <ul>
+                    <li><?php esc_html_e('Visual block preview in the editor', 'lunio-wp'); ?></li>
+                    <li><?php esc_html_e('Sidebar controls for all calculator options', 'lunio-wp'); ?></li>
+                    <li><?php esc_html_e('Same functionality as shortcodes', 'lunio-wp'); ?></li>
+                </ul>
             </div>
         </div>
         <?php
