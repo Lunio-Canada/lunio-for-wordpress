@@ -26,10 +26,39 @@ class Lunio_Shortcodes {
         ));
     }
 
-    public function render_calculator() {
+    public function render_calculator($atts) {
+        $atts = shortcode_atts(array(
+            'province' => '',
+            'show_breakdown' => 'true',
+            'powered_by' => 'true',
+            'layout' => 'full',
+        ), $atts, 'lunio_tax_calculator');
+
+        // Sanitize province
+        $province = strtoupper(sanitize_text_field($atts['province']));
+        $allowed_provinces = array('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT');
+        if (!in_array($province, $allowed_provinces)) {
+            $province = '';
+        }
+
+        // Sanitize show_breakdown
+        $show_breakdown = filter_var($atts['show_breakdown'], FILTER_VALIDATE_BOOLEAN);
+
+        // Sanitize powered_by
+        $powered_by = filter_var($atts['powered_by'], FILTER_VALIDATE_BOOLEAN);
+
+        // Sanitize layout
+        $layout = strtolower(sanitize_text_field($atts['layout']));
+        if ($layout !== 'compact') {
+            $layout = 'full';
+        }
+        $classes = 'lunio-tax-calculator';
+        if ($layout === 'compact') {
+            $classes .= ' lunio-compact';
+        }
         ob_start();
         ?>
-        <div class="lunio-tax-calculator">
+        <div class="<?php echo esc_attr($classes); ?>" data-show-breakdown="<?php echo $show_breakdown ? 'true' : 'false'; ?>" data-layout="<?php echo esc_attr($layout); ?>">
             <form id="lunio-tax-form">
                 <div class="lunio-form-group">
                     <label for="lunio-amount"><?php esc_html_e('Amount ($)', 'lunio-wp'); ?></label>
@@ -39,26 +68,28 @@ class Lunio_Shortcodes {
                     <label for="lunio-province"><?php esc_html_e('Province', 'lunio-wp'); ?></label>
                     <select id="lunio-province" name="province_code" required>
                         <option value=""><?php esc_html_e('Select Province', 'lunio-wp'); ?></option>
-                        <option value="AB">Alberta</option>
-                        <option value="BC">British Columbia</option>
-                        <option value="MB">Manitoba</option>
-                        <option value="NB">New Brunswick</option>
-                        <option value="NL">Newfoundland and Labrador</option>
-                        <option value="NT">Northwest Territories</option>
-                        <option value="NS">Nova Scotia</option>
-                        <option value="NU">Nunavut</option>
-                        <option value="ON">Ontario</option>
-                        <option value="PE">Prince Edward Island</option>
-                        <option value="QC">Quebec</option>
-                        <option value="SK">Saskatchewan</option>
-                        <option value="YT">Yukon</option>
+                        <option value="AB" <?php selected($province, 'AB'); ?>>Alberta</option>
+                        <option value="BC" <?php selected($province, 'BC'); ?>>British Columbia</option>
+                        <option value="MB" <?php selected($province, 'MB'); ?>>Manitoba</option>
+                        <option value="NB" <?php selected($province, 'NB'); ?>>New Brunswick</option>
+                        <option value="NL" <?php selected($province, 'NL'); ?>>Newfoundland and Labrador</option>
+                        <option value="NT" <?php selected($province, 'NT'); ?>>Northwest Territories</option>
+                        <option value="NS" <?php selected($province, 'NS'); ?>>Nova Scotia</option>
+                        <option value="NU" <?php selected($province, 'NU'); ?>>Nunavut</option>
+                        <option value="ON" <?php selected($province, 'ON'); ?>>Ontario</option>
+                        <option value="PE" <?php selected($province, 'PE'); ?>>Prince Edward Island</option>
+                        <option value="QC" <?php selected($province, 'QC'); ?>>Quebec</option>
+                        <option value="SK" <?php selected($province, 'SK'); ?>>Saskatchewan</option>
+                        <option value="YT" <?php selected($province, 'YT'); ?>>Yukon</option>
                     </select>
                 </div>
                 <button type="submit" id="lunio-calculate-btn"><?php esc_html_e('Calculate Tax', 'lunio-wp'); ?></button>
             </form>
             <div id="lunio-result" style="display:none;"></div>
             <div id="lunio-error" style="display:none;"></div>
-            <div class="lunio-powered-by"><?php esc_html_e('Powered by Lunio', 'lunio-wp'); ?></div>
+            <?php if ($powered_by) : ?>
+                <div class="lunio-powered-by"><a href="https://lunio.ca" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Powered by Lunio', 'lunio-wp'); ?></a></div>
+            <?php endif; ?>
         </div>
         <?php
         return ob_get_clean();

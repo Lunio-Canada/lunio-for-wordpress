@@ -7,6 +7,7 @@ This plugin allows you to embed a Canadian tax calculator on your WordPress site
 - Clean, responsive tax calculator shortcode
 - Supports all Canadian provinces and territories
 - Calculates GST, HST, PST, and QST as applicable
+- Customizable shortcode attributes for layout and behavior
 - Secure API key management
 - Debug mode for troubleshooting
 
@@ -26,6 +27,22 @@ This plugin allows you to embed a Canadian tax calculator on your WordPress site
 ## Usage
 
 Add the shortcode `[lunio_tax_calculator]` to any page or post to display the tax calculator.
+
+### Shortcode Attributes
+
+You can customize the calculator using the following attributes:
+
+- `province`: Pre-select a Canadian province (e.g., `province="ON"` for Ontario). Valid codes: AB, BC, MB, NB, NL, NT, NS, NU, ON, PE, QC, SK, YT.
+- `show_breakdown`: Show/hide individual tax breakdown rows. Default: `true`. Use `show_breakdown="false"` to hide GST/HST/PST/QST rows.
+- `powered_by`: Show/hide the "Powered by Lunio" link. Default: `true`. Use `powered_by="false"` to hide.
+- `layout`: Choose layout style. Default: `full`. Use `layout="compact"` for a smaller, tighter design.
+
+#### Examples
+
+- Basic: `[lunio_tax_calculator]`
+- Pre-selected province: `[lunio_tax_calculator province="QC"]`
+- Compact layout without breakdown: `[lunio_tax_calculator layout="compact" show_breakdown="false"]`
+- Custom setup: `[lunio_tax_calculator province="ON" powered_by="false" layout="compact"]`
 
 ## API Plan
 

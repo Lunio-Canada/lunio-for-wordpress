@@ -124,6 +124,46 @@
     color: #666;
 }
 
+/* Compact layout */
+.lunio-compact {
+    max-width: 350px;
+    padding: 15px;
+}
+
+.lunio-compact .lunio-form-group {
+    margin-bottom: 12px;
+}
+
+.lunio-compact .lunio-form-group input,
+.lunio-compact .lunio-form-group select {
+    padding: 8px;
+    font-size: 14px;
+}
+
+.lunio-compact #lunio-calculate-btn {
+    padding: 10px;
+    font-size: 14px;
+}
+
+.lunio-compact #lunio-result {
+    padding: 12px;
+    margin-top: 15px;
+}
+
+.lunio-compact .lunio-result-header {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.lunio-compact .lunio-result-row {
+    padding: 4px 0;
+}
+
+.lunio-compact .lunio-powered-by {
+    margin-top: 15px;
+    font-size: 11px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 480px) {
     .lunio-tax-calculator {
