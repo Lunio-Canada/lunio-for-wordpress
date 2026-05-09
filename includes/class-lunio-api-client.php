@@ -39,6 +39,16 @@ class Lunio_API_Client {
         return $this->handle_response($response);
     }
 
+    public function reverse_calculate_tax($data) {
+        $url = $this->base_url . '/tax/reverse';
+        $response = wp_remote_post($url, array(
+            'headers' => $this->get_headers(),
+            'body' => wp_json_encode($data),
+            'timeout' => 30,
+        ));
+        return $this->handle_response($response);
+    }
+
     private function get_headers() {
         $headers = array(
             'Content-Type' => 'application/json',

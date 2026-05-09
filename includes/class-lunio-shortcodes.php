@@ -28,6 +28,7 @@ class Lunio_Shortcodes {
 
     public function render_calculator($atts) {
         $atts = shortcode_atts(array(
+            'type' => 'standard',
             'province' => '',
             'show_breakdown' => 'true',
             'powered_by' => 'true',
@@ -39,6 +40,12 @@ class Lunio_Shortcodes {
         $allowed_provinces = array('AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT');
         if (!in_array($province, $allowed_provinces)) {
             $province = '';
+        }
+
+        // Sanitize type
+        $type = strtolower(sanitize_text_field($atts['type']));
+        if ($type !== 'reverse') {
+            $type = 'standard';
         }
 
         // Sanitize show_breakdown
@@ -58,10 +65,11 @@ class Lunio_Shortcodes {
         }
         ob_start();
         ?>
-        <div class="<?php echo esc_attr($classes); ?>" data-show-breakdown="<?php echo $show_breakdown ? 'true' : 'false'; ?>" data-layout="<?php echo esc_attr($layout); ?>">
+        <div class="<?php echo esc_attr($classes); ?>" data-type="<?php echo esc_attr($type); ?>" data-show-breakdown="<?php echo $show_breakdown ? 'true' : 'false'; ?>" data-layout="<?php echo esc_attr($layout); ?>">
             <form id="lunio-tax-form">
+                <input type="hidden" name="type" value="<?php echo esc_attr($type); ?>" />
                 <div class="lunio-form-group">
-                    <label for="lunio-amount"><?php esc_html_e('Amount ($)', 'lunio-wp'); ?></label>
+                    <label for="lunio-amount"><?php echo $type === 'reverse' ? esc_html__('Tax-Included Total ($)', 'lunio-wp') : esc_html__('Subtotal ($)', 'lunio-wp'); ?></label>
                     <input type="number" id="lunio-amount" name="amount" step="0.01" min="0" required />
                 </div>
                 <div class="lunio-form-group">
@@ -83,7 +91,7 @@ class Lunio_Shortcodes {
                         <option value="YT" <?php selected($province, 'YT'); ?>>Yukon</option>
                     </select>
                 </div>
-                <button type="submit" id="lunio-calculate-btn"><?php esc_html_e('Calculate Tax', 'lunio-wp'); ?></button>
+                <button type="submit" id="lunio-calculate-btn"><?php echo $type === 'reverse' ? esc_html__('Reverse Calculate', 'lunio-wp') : esc_html__('Calculate Tax', 'lunio-wp'); ?></button>
             </form>
             <div id="lunio-result" style="display:none;"></div>
             <div id="lunio-error" style="display:none;"></div>
@@ -97,6 +105,10 @@ class Lunio_Shortcodes {
 
     public function ajax_calculate_tax() {
         check_ajax_referer('lunio_calculate_tax', 'nonce');
+        $type = sanitize_text_field($_POST['type'] ?? 'standard');
+        if ($type !== 'reverse') {
+            $type = 'standard';
+        }
         $amount = sanitize_text_field($_POST['amount']);
         $province_code = sanitize_text_field($_POST['province_code']);
         if (!is_numeric($amount) || $amount < 0) {
@@ -107,10 +119,17 @@ class Lunio_Shortcodes {
             wp_send_json_error(array('message' => __('Invalid province', 'lunio-wp')));
         }
         $api_client = new Lunio_API_Client();
-        $response = $api_client->calculate_tax(array(
-            'amount' => floatval($amount),
-            'province_code' => $province_code,
-        ));
+        if ($type === 'reverse') {
+            $response = $api_client->reverse_calculate_tax(array(
+                'amount' => floatval($amount),
+                'province_code' => $province_code,
+            ));
+        } else {
+            $response = $api_client->calculate_tax(array(
+                'amount' => floatval($amount),
+                'province_code' => $province_code,
+            ));
+        }
         if (is_wp_error($response)) {
             wp_send_json_error(array('message' => __('Calculation failed: ', 'lunio-wp') . $response->get_error_message()));
         } else {

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorDiv = document.getElementById('lunio-error');
     const btn = document.getElementById('lunio-calculate-btn');
     const showBreakdown = calculator.dataset.showBreakdown === 'true';
+    const calculatorType = calculator.dataset.type;
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const amount = document.getElementById('lunio-amount').value.trim();
@@ -56,14 +57,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         let d = result.data;
-        let html = '<div class="lunio-result-header">Tax Calculation for ' + d.province_code + '</div>';
-        html += '<div class="lunio-result-row"><span>Subtotal:</span><span>$' + parseFloat(d.subtotal).toFixed(2) + '</span></div>';
+        let html = '<div class="lunio-result-header">';
+        if (calculatorType === 'reverse') {
+            html += 'Reverse Tax Calculation for ' + d.province_code + '</div>';
+            html += '<div class="lunio-result-row"><span>Tax-Included Total:</span><span>$' + parseFloat(d.total).toFixed(2) + '</span></div>';
+            html += '<div class="lunio-result-row"><span>Estimated Subtotal:</span><span>$' + parseFloat(d.subtotal).toFixed(2) + '</span></div>';
+        } else {
+            html += 'Tax Calculation for ' + d.province_code + '</div>';
+            html += '<div class="lunio-result-row"><span>Subtotal:</span><span>$' + parseFloat(d.subtotal).toFixed(2) + '</span></div>';
+        }
         if (showBreakdown && d.tax.gst > 0) html += '<div class="lunio-result-row"><span>GST:</span><span>$' + parseFloat(d.tax.gst).toFixed(2) + '</span></div>';
         if (showBreakdown && d.tax.hst > 0) html += '<div class="lunio-result-row"><span>HST:</span><span>$' + parseFloat(d.tax.hst).toFixed(2) + '</span></div>';
         if (showBreakdown && d.tax.pst > 0) html += '<div class="lunio-result-row"><span>PST:</span><span>$' + parseFloat(d.tax.pst).toFixed(2) + '</span></div>';
         if (showBreakdown && d.tax.qst > 0) html += '<div class="lunio-result-row"><span>QST:</span><span>$' + parseFloat(d.tax.qst).toFixed(2) + '</span></div>';
         html += '<div class="lunio-result-row lunio-total-tax"><span>Total Tax:</span><span>$' + parseFloat(d.tax.total_tax).toFixed(2) + '</span></div>';
-        html += '<div class="lunio-result-row lunio-grand-total"><span>Total:</span><span>$' + parseFloat(d.total).toFixed(2) + '</span></div>';
+        if (calculatorType !== 'reverse') {
+            html += '<div class="lunio-result-row lunio-grand-total"><span>Total:</span><span>$' + parseFloat(d.total).toFixed(2) + '</span></div>';
+        }
         resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     }

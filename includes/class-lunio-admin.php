@@ -171,10 +171,31 @@ class Lunio_Admin {
                                 <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator show_breakdown=&quot;false&quot;]">Copy</button>
                             </div>
                             <div class="lunio-shortcode-card">
-                                <h3>Custom Setup</h3>
-                                <p>Fully customized calculator.</p>
+                                <h3><?php esc_html_e('Reverse Calculator', 'lunio-wp'); ?></h3>
+                                <p><?php esc_html_e('Calculate pre-tax amount from tax-included total.', 'lunio-wp'); ?></p>
+                                <code>[lunio_tax_calculator type="reverse"]</code>
+                                <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator type=&quot;reverse&quot;]">Copy</button>
+                            </div>
+                            <div class="lunio-shortcode-card">
+                                <h3><?php esc_html_e('Custom Setup', 'lunio-wp'); ?></h3>
+                                <p><?php esc_html_e('Fully customized calculator.', 'lunio-wp'); ?></p>
                                 <code>[lunio_tax_calculator province="ON" show_breakdown="true" powered_by="true" layout="compact"]</code>
                                 <button class="lunio-copy-btn" data-shortcode="[lunio_tax_calculator province=&quot;ON&quot; show_breakdown=&quot;true&quot; powered_by=&quot;true&quot; layout=&quot;compact&quot;]">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculator Types -->
+                    <div class="lunio-card">
+                        <h2><?php esc_html_e('Calculator Types', 'lunio-wp'); ?></h2>
+                        <div class="lunio-calculator-types">
+                            <div class="lunio-type-card">
+                                <h3><?php esc_html_e('Standard Tax Calculator', 'lunio-wp'); ?></h3>
+                                <p><?php esc_html_e('Enter a subtotal amount and calculate the taxes and final total.', 'lunio-wp'); ?></p>
+                            </div>
+                            <div class="lunio-type-card">
+                                <h3><?php esc_html_e('Reverse Tax Calculator', 'lunio-wp'); ?></h3>
+                                <p><?php esc_html_e('Enter a tax-included total and calculate the pre-tax subtotal and tax breakdown.', 'lunio-wp'); ?></p>
                             </div>
                         </div>
                     </div>
@@ -182,7 +203,7 @@ class Lunio_Admin {
                     <!-- Calculator Preview -->
                     <div class="lunio-card">
                         <h2><?php esc_html_e('Calculator Preview', 'lunio-wp'); ?></h2>
-                        <p><?php esc_html_e('Preview of how the tax calculator appears on your site.', 'lunio-wp'); ?></p>
+                        <p><?php esc_html_e('Preview of the standard tax calculator. The reverse calculator has similar styling with different labels.', 'lunio-wp'); ?></p>
                         <div class="lunio-calculator-preview">
                             <div class="lunio-preview-calculator">
                                 <div class="lunio-preview-group">
