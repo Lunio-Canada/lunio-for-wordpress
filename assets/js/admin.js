@@ -17,14 +17,42 @@ jQuery(document).ready(function($) {
     $('.lunio-copy-btn').on('click', function() {
         var shortcode = $(this).data('shortcode');
         var btn = $(this);
-        navigator.clipboard.writeText(shortcode).then(function() {
-            var originalText = btn.text();
+        var originalText = btn.text();
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            } else {
+                // Fallback for older browsers/admin contexts
+                var textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                var success = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                if (success) {
+                    return Promise.resolve();
+                } else {
+                    return Promise.reject(new Error('Fallback copy failed'));
+                }
+            }
+        }
+
+        copyToClipboard(shortcode).then(function() {
             btn.addClass('copied').text('Copied!');
             setTimeout(function() {
                 btn.removeClass('copied').text(originalText);
             }, 2000);
         }).catch(function(err) {
             console.error('Failed to copy: ', err);
+            btn.text('Error');
+            setTimeout(function() {
+                btn.text(originalText);
+            }, 2000);
         });
     });
 
